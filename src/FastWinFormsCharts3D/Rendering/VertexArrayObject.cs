@@ -58,5 +58,7 @@ public sealed class VertexArrayObject : IDisposable
             _gl.DeleteVertexArray(_handle);
             _disposed = true;
         }
+
+        GC.SuppressFinalize(this);
     }
 }

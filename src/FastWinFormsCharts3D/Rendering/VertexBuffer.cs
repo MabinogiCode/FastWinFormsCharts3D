@@ -67,6 +67,8 @@ public sealed class VertexBuffer : IDisposable
             _gl.DeleteBuffer(_handle);
             _disposed = true;
         }
+
+        GC.SuppressFinalize(this);
     }
 
     private unsafe void UploadData<T>(T[] data) where T : unmanaged

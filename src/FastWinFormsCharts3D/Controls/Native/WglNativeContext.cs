@@ -58,5 +58,6 @@ internal sealed class WglNativeContext : INativeContext
     public void Dispose()
     {
         // opengl32.dll lifetime is managed by OpenGLControl.TearDownGLContext.
+        GC.SuppressFinalize(this);
     }
 }

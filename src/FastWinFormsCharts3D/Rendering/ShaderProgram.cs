@@ -111,6 +111,8 @@ public sealed class ShaderProgram : IDisposable
             _gl.DeleteProgram(_handle);
             _disposed = true;
         }
+
+        GC.SuppressFinalize(this);
     }
 
     private int GetUniformLocation(string name)

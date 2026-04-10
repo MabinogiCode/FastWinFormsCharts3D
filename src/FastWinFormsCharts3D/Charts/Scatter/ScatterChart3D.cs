@@ -72,12 +72,12 @@ public sealed class ScatterChart3D : IChart3D
     /// <inheritdoc />
     public void Dispose()
     {
-        if (_disposed)
+        if (!_disposed)
         {
-            return;
+            // TODO (v0.3): release GPU resources (VAOs, VBOs, shader program).
+            _disposed = true;
         }
 
-        // TODO (v0.3): release GPU resources (VAOs, VBOs, shader program).
-        _disposed = true;
+        GC.SuppressFinalize(this);
     }
 }
