@@ -1,0 +1,41 @@
+name: Benchmarks
+
+on:
+  workflow_dispatch:
+    inputs:
+      filter:
+        description: 'BenchmarkDotNet filter (e.g. *Scatter*)'
+        required: false
+        default: '*'
+
+jobs:
+  benchmark:
+    name: Run Benchmarks
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Restore
+        run: dotnet restore FastWinFormsCharts3D.sln
+
+      - name: Run Benchmarks
+        run: >
+          dotnet run
+          --project benchmarks/FastWinFormsCharts3D.Benchmarks/FastWinFormsCharts3D.Benchmarks.csproj
+          -c Release
+          --
+          --filter "${{ github.event.inputs.filter }}"
+          --artifacts ./BenchmarkResults
+
+      - name: Upload Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results
+          path: ./BenchmarkResults/

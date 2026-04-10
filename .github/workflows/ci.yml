@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    name: Build & Test
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Restore
+        run: dotnet restore FastWinFormsCharts3D.sln
+
+      - name: Build
+        run: dotnet build FastWinFormsCharts3D.sln --no-restore -c Release
+
+      - name: Test with Coverage
+        run: >
+          dotnet test FastWinFormsCharts3D.sln
+          --no-build -c Release
+          --collect:"XPlat Code Coverage"
+          --results-directory ./TestResults
+          /p:CoverletOutputFormat=cobertura
+
+      - name: Upload Coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./TestResults/**/coverage.cobertura.xml
+          fail_ci_if_error: false
