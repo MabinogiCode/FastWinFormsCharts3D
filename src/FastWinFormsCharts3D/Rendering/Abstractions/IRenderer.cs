@@ -1,5 +1,6 @@
 // Copyright (c) 2026 MabinogiCode. All rights reserved.
 
+using FastWinFormsCharts3D.Rendering;
 using Silk.NET.OpenGL;
 
 namespace FastWinFormsCharts3D.Rendering.Abstractions;

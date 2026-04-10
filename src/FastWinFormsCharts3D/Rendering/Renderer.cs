@@ -45,7 +45,12 @@ public sealed class Renderer : IRenderer
     /// <inheritdoc />
     public void Dispose()
     {
-        _disposed = true;
+        if (_disposed)
+        {
+            return;
+        }
+
         _gl = null;
+        _disposed = true;
     }
 }

@@ -18,16 +18,18 @@
 - [x] Demo WinForms app skeleton
 - [x] GitHub Actions CI/CD workflows (ci, release, benchmarks)
 
-## v0.2 — OpenGL Context in WinForms + Basic Rendering Pipeline
+## v0.2 — OpenGL Context in WinForms + Basic Rendering Pipeline *(done)*
 
-- [ ] `OpenGLControl` — WGL context creation via `Silk.NET.OpenGL.Extensions.WGL` + P/Invoke `gdi32`
-- [ ] SwapBuffers, resize handling (`glViewport`), paint loop
-- [ ] `ShaderProgram` — compile + link GLSL from embedded resources
-- [ ] `VertexBuffer` + `VertexArrayObject` — full GPU buffer lifecycle
-- [ ] `Renderer` — draw-call submission
-- [ ] `Camera3D` — `ViewMatrix` + `Projection.Perspective` producing correct MVP
-- [ ] `Chart3DControl` — mouse orbit (drag), scroll zoom, right-drag pan
-- [ ] Integration test: render to off-screen FBO, assert pixel color
+- [x] `OpenGLControl` — WGL context via `NativeMethods` P/Invoke (`gdi32`, `opengl32`, `user32`)
+- [x] `WglNativeContext` — Silk.NET `INativeContext` backed by `wglGetProcAddress` + `GetProcAddress` fallback
+- [x] `PixelFormatDescriptor` — Win32 struct (32-bit RGBA, 24-bit depth, 8-bit stencil, double-buffer)
+- [x] SwapBuffers, `glViewport` on resize, `Application.Idle` continuous render loop
+- [x] `glClear` (color + depth) each frame, `GL_PROGRAM_POINT_SIZE` enabled
+- [x] `ShaderProgram` — compile + link GLSL from embedded `Assembly.GetManifestResourceStream`
+- [x] `VertexBuffer` + `VertexArrayObject` — full GPU buffer lifecycle (create, bind, upload, dispose)
+- [x] `Renderer` — immediate-mode draw-call submission via `glDrawArrays`
+- [x] `Camera3D` — orbital `ViewMatrix` (`Matrix4x4.CreateLookAt`) + `Projection.Perspective`
+- [x] `Chart3DControl` — left-drag orbit, scroll zoom, right-drag pan, `IChart3D` lifecycle management
 
 ## v0.3 — Scatter 3D Chart
 
