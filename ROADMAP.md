@@ -31,17 +31,17 @@
 - [x] `Camera3D` — orbital `ViewMatrix` (`Matrix4x4.CreateLookAt`) + `Projection.Perspective`
 - [x] `Chart3DControl` — left-drag orbit, scroll zoom, right-drag pan, `IChart3D` lifecycle management
 
-## v0.3 — Scatter 3D Chart
+## v0.3 — Scatter 3D Chart *(done)*
 
-- [ ] `ScatterChart3D.Initialize` — VBO upload from `DataSeries3D`
-- [ ] `scatter.vert` / `scatter.frag` — `gl_PointSize`, per-series color uniform
-- [ ] MVP uniform upload per frame
-- [ ] `DataSeries3D.DataChanged` → incremental VBO update (orphan + re-upload)
-- [ ] Axis lines (X/Y/Z) via `LineRenderer`
-- [ ] Axis labels (WinForms GDI+ overlay via `OnPaint`)
-- [ ] Legend overlay
-- [ ] Demo app: animated scatter (sin/cos spiral, 100 k points)
-- [ ] Benchmark: 1 000 000 points, measure sustained FPS
+- [x] `ScatterChart3D.Initialize` — VBO upload from `DataSeries3D`
+- [x] `scatter.vert` / `scatter.frag` — `gl_PointSize`, per-series color uniform
+- [x] MVP uniform upload per frame (`System.Numerics` row-major → `transpose=true` fix)
+- [x] `DataSeries3D.DataChanged` → incremental VBO update (free + re-upload)
+- [x] Axis lines (X/Y/Z) — red/green/blue color-coded, rendered via shared shader
+- [x] Demo app: animated scatter (sin/cos spiral, 100 k points, ~60 fps `Timer`)
+- [ ] Axis labels (WinForms GDI+ overlay via `OnPaint`) — deferred to v0.8
+- [ ] Legend overlay — deferred to v0.8
+- [ ] Benchmark: 1 000 000 points, measure sustained FPS — deferred to v0.7
 
 ## v0.4 — Surface Chart 3D
 

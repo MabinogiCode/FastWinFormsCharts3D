@@ -75,7 +75,9 @@ public sealed class ShaderProgram : IDisposable
         int location = GetUniformLocation(name);
         if (location >= 0)
         {
-            _gl.UniformMatrix4(location, 1, false, (float*)&value);
+            // System.Numerics.Matrix4x4 is row-major; OpenGL expects column-major.
+            // transpose=true tells the driver to transpose on upload, giving the correct result.
+            _gl.UniformMatrix4(location, 1, true, (float*)&value);
         }
     }
 

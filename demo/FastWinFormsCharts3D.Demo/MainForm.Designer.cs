@@ -9,6 +9,7 @@ namespace FastWinFormsCharts3D.Demo;
 partial class MainForm
 {
     private System.ComponentModel.IContainer components = null!;
+    private System.Windows.Forms.Timer _animTimer = null!;
 
     /// <inheritdoc />
     protected override void Dispose(bool disposing)
@@ -25,8 +26,13 @@ partial class MainForm
     {
         components = new System.ComponentModel.Container();
         _chartControl = new Chart3DControl();
+        _animTimer = new System.Windows.Forms.Timer(components);
 
         SuspendLayout();
+
+        // _animTimer — ~60 fps, handler wired in MainForm.cs
+        _animTimer.Interval = 16;
+        _animTimer.Tick += OnAnimTimerTick;
 
         // _chartControl
         _chartControl.Dock = DockStyle.Fill;
