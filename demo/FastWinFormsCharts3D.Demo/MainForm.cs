@@ -1,6 +1,7 @@
 // Copyright (c) 2026 MabinogiCode. All rights reserved.
 
 using FastWinFormsCharts3D.Charts.Scatter;
+using FastWinFormsCharts3D.Charts.Surface;
 using FastWinFormsCharts3D.Controls;
 using FastWinFormsCharts3D.DataModels;
 using System.Drawing;
@@ -9,8 +10,11 @@ using System.Windows.Forms;
 namespace FastWinFormsCharts3D.Demo;
 
 /// <summary>
-/// Main demo window. Hosts a <see cref="ScatterChart3D"/> with an animated sin/cos spiral
-/// (100 000 points) spinning in real-time, plus a static random background cloud.
+/// Main demo window. Shows two tabs:
+/// <list type="bullet">
+///   <item><b>Scatter 3D</b> — animated sin/cos spiral (100 000 points, ~60 fps).</item>
+///   <item><b>Surface 3D</b> — ripple heightmap (100 × 100 grid, Viridis palette).</item>
+/// </list>
 /// </summary>
 public partial class MainForm : Form
 {
@@ -22,10 +26,13 @@ public partial class MainForm : Form
     public MainForm()
     {
         InitializeComponent();
-        SetupChart();
+        SetupScatter();
+        SetupSurface();
     }
 
-    private void SetupChart()
+    // ── Scatter tab ───────────────────────────────────────────────────────────
+
+    private void SetupScatter()
     {
         ScatterChart3D scatter = new() { Title = "Scatter 3D — Animated Spiral (100 k points)" };
 
@@ -84,5 +91,39 @@ public partial class MainForm : Form
                 (float)(rng.NextDouble() * 2 - 1),
                 (float)(rng.NextDouble() * 2 - 1));
         }
+    }
+
+    // ── Surface tab ───────────────────────────────────────────────────────────
+
+    private void SetupSurface()
+    {
+        const int size = 100;
+        float[,] heights = BuildRippleHeightmap(size, size);
+
+        SurfaceChart3D surface = new(new SurfaceData(heights))
+        {
+            Title = "Surface 3D — Ripple (100 × 100)",
+        };
+
+        _surfaceControl.Chart = surface;
+    }
+
+    private static float[,] BuildRippleHeightmap(int rows, int cols)
+    {
+        float[,] h = new float[rows, cols];
+
+        for (int r = 0; r < rows; r++)
+        {
+            float z = -1f + (2f * r / (rows - 1));
+
+            for (int c = 0; c < cols; c++)
+            {
+                float x = -1f + (2f * c / (cols - 1));
+                float dist = MathF.Sqrt((x * x) + (z * z));
+                h[r, c] = MathF.Sin(dist * 15f) * 0.25f;
+            }
+        }
+
+        return h;
     }
 }

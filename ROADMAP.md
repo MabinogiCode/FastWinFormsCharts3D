@@ -43,12 +43,14 @@
 - [ ] Legend overlay — deferred to v0.8
 - [ ] Benchmark: 1 000 000 points, measure sustained FPS — deferred to v0.7
 
-## v0.4 — Surface Chart 3D
+## v0.4 — Surface Chart 3D *(done)*
 
-- [ ] `SurfaceChart3D : IChart3D`
-- [ ] Grid mesh generation from `float[rows, cols]` heightmap
-- [ ] Color mapping: heat map + Viridis palette
-- [ ] `surface.vert` / `surface.frag` shaders
+- [x] `SurfaceChart3D : IChart3D`
+- [x] Grid mesh generation from `float[rows, cols]` heightmap (VBO + EBO, indexed triangle list)
+- [x] `SurfaceData` — rows × cols heightmap with world-space extents + `DataChanged` event
+- [x] Viridis colour mapping — degree-6 polynomial in `surface.frag`, range driven by `uYMin`/`uYMax`
+- [x] `surface.vert` / `surface.frag` — embedded GLSL, height-to-Viridis pipeline
+- [x] Demo: ripple heightmap (sin(dist × 15) × 0.25, 100 × 100 grid) — Surface tab in demo app
 
 ## v0.5 — Bar Chart 3D
 
