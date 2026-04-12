@@ -64,11 +64,15 @@
 - [x] Refactored `ScatterChart3D` + `SurfaceChart3D` to use `AxisRenderer` (fixes teal-axis issue)
 - [x] Demo: wave-pattern grid (sin × cos, 12 × 12 bars) — Bar 3D tab in demo app
 
-## v0.6 — Line Chart 3D
+## v0.6 — Line Chart 3D *(done)*
 
-- [ ] `LineChart3D : IChart3D`
-- [ ] Tube geometry for thick lines
-- [ ] Dashed line shader variant
+- [x] `LineChart3D : IChart3D` — multi-series, same Add/Remove/DataChanged pattern
+- [x] `LineSeries3D` — ordered `DataPoint3D[]`, `Radius`, `Color`, `IsDashed`, `DashLength`, `GapLength`
+- [x] CPU tube generator — N=8-sided octagonal cross-section; smoothed tangents at joints
+  (average of incoming + outgoing segment directions); arc-length packed into interleaved VBO
+- [x] `line.vert` — interleaved `(XYZ + cumDist)` at stride=16; passes `vDistance` to fragment
+- [x] `line.frag` — dashed pattern: `discard` when `mod(vDistance, dash+gap) > dash`
+- [x] Demo: Lissajous 3D knot (solid, 1 000 points) + 4-turn helix (dashed, 600 points) — Line 3D tab
 
 ## v0.7 — Performance Pass
 

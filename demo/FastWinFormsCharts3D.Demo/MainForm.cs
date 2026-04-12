@@ -1,6 +1,7 @@
 // Copyright (c) 2026 MabinogiCode. All rights reserved.
 
 using FastWinFormsCharts3D.Charts.Bar;
+using FastWinFormsCharts3D.Charts.Line;
 using FastWinFormsCharts3D.Charts.Scatter;
 using FastWinFormsCharts3D.Charts.Surface;
 using FastWinFormsCharts3D.Controls;
@@ -11,11 +12,12 @@ using System.Windows.Forms;
 namespace FastWinFormsCharts3D.Demo;
 
 /// <summary>
-/// Main demo window. Shows three tabs:
+/// Main demo window. Shows four tabs:
 /// <list type="bullet">
 ///   <item><b>Scatter 3D</b> — animated sin/cos spiral (100 000 points, ~60 fps).</item>
 ///   <item><b>Surface 3D</b> — ripple heightmap (100 × 100 grid, Viridis palette).</item>
 ///   <item><b>Bar 3D</b> — wave-pattern bar grid (12 × 12, instanced rendering).</item>
+///   <item><b>Line 3D</b> — Lissajous tube (solid) + helix tube (dashed).</item>
 /// </list>
 /// </summary>
 public partial class MainForm : Form
@@ -31,6 +33,7 @@ public partial class MainForm : Form
         SetupScatter();
         SetupSurface();
         SetupBar();
+        SetupLine();
     }
 
     // ── Scatter tab ───────────────────────────────────────────────────────────
@@ -39,14 +42,12 @@ public partial class MainForm : Form
     {
         ScatterChart3D scatter = new() { Title = "Scatter 3D — Animated Spiral (100 k points)" };
 
-        // Static background: random point cloud for depth reference.
         scatter.AddSeries(new DataSeries3D("Background", GenerateRandomPoints(20_000, 42))
         {
             Color = Color.FromArgb(180, 80, 140, 255),
             MarkerSize = 2f,
         });
 
-        // Animated foreground: 100 000-point helical spiral driven by the application timer.
         _spiralSeries = new DataSeries3D("Spiral", GenerateSpiralPoints(100_000, 0f))
         {
             Color = Color.FromArgb(255, 60, 220, 110),
@@ -159,5 +160,64 @@ public partial class MainForm : Form
         }
 
         return v;
+    }
+
+    // ── Line tab ──────────────────────────────────────────────────────────────
+
+    private void SetupLine()
+    {
+        LineChart3D line = new() { Title = "Line 3D — Lissajous (solid) + Helix (dashed)" };
+
+        // Lissajous 3D knot: x=sin(3t+π/4), y=sin(2t), z=cos(t)
+        line.AddSeries(new LineSeries3D("Lissajous", BuildLissajous(1_000))
+        {
+            Color = Color.FromArgb(255, 50, 210, 255),
+            Radius = 0.018f,
+            IsDashed = false,
+        });
+
+        // Helix with 4 turns — rendered dashed
+        line.AddSeries(new LineSeries3D("Helix", BuildHelix(600, turns: 4))
+        {
+            Color = Color.FromArgb(255, 255, 160, 40),
+            Radius = 0.022f,
+            IsDashed = true,
+            DashLength = 0.12f,
+            GapLength = 0.06f,
+        });
+
+        _lineControl.Chart = line;
+    }
+
+    private static DataPoint3D[] BuildLissajous(int count)
+    {
+        DataPoint3D[] pts = new DataPoint3D[count];
+
+        for (int i = 0; i < count; i++)
+        {
+            float t = i * MathF.Tau / (count - 1);
+            pts[i] = new DataPoint3D(
+                MathF.Sin((3 * t) + (MathF.PI / 4f)),
+                MathF.Sin(2 * t),
+                MathF.Cos(t));
+        }
+
+        return pts;
+    }
+
+    private static DataPoint3D[] BuildHelix(int count, int turns)
+    {
+        DataPoint3D[] pts = new DataPoint3D[count];
+
+        for (int i = 0; i < count; i++)
+        {
+            float t = i * MathF.Tau * turns / (count - 1);
+            pts[i] = new DataPoint3D(
+                MathF.Cos(t) * 0.75f,
+                ((float)i / (count - 1) * 2f) - 1f,
+                MathF.Sin(t) * 0.75f);
+        }
+
+        return pts;
     }
 }
