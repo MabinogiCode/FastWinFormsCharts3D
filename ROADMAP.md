@@ -74,13 +74,13 @@
 - [x] `line.frag` — dashed pattern: `discard` when `mod(vDistance, dash+gap) > dash`
 - [x] Demo: Lissajous 3D knot (solid, 1 000 points) + 4-turn helix (dashed, 600 points) — Line 3D tab
 
-## v0.7 — Performance Pass
+## v0.7 — Performance Pass *(done)*
 
-- [ ] Frustum culling (discard points outside camera view)
-- [ ] LOD for scatter (reduce point count at distance)
-- [ ] Compute shaders for large dataset transforms (`Silk.NET.OpenGL` compute)
-- [ ] Async data loading pipeline (background thread → GPU upload on UI thread)
-- [ ] Memory-mapped data source for streaming datasets
+- [x] Frustum culling — `FrustumCuller.IsVisible`: conservative 8-corner AABB clip-space test; each `ScatterChart3D` series skips its draw call when entirely outside the frustum
+- [x] LOD for scatter — `ScatterChart3D.MaxRenderPoints`: stride-sampling cap applied at VBO-upload time; reduces GPU vertex throughput for large datasets
+- [x] Async data loading pipeline — `DataPipeline.PostAsync`: `Task.Run` compute on thread pool → `SynchronizationContext.Post` marshal back to UI thread; supports both `DataSeries3D` and `SurfaceData`
+- [ ] Compute shaders — deferred; require OpenGL 4.3 compute pipeline; library target is GL 3.3
+- [ ] Memory-mapped data source for streaming datasets — deferred to v0.9
 
 ## v0.8 — UX Polish
 

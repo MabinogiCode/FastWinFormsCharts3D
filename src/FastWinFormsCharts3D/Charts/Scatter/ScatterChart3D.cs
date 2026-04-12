@@ -19,6 +19,10 @@ namespace FastWinFormsCharts3D.Charts.Scatter;
 ///   <item>Shaders compiled from embedded resources on <see cref="Initialize"/>.</item>
 ///   <item>Each series maps to one VAO + VBO pair (tightly packed XYZ floats).</item>
 ///   <item>MVP uploaded per frame; model matrix is Identity (data in world space).</item>
+///   <item>Frustum culling: each series AABB is tested via <see cref="FrustumCuller.IsVisible"/>
+///     each frame; invisible series skip the draw call entirely.</item>
+///   <item>LOD: when <see cref="MaxRenderPoints"/> is set, data is stride-sampled down to that
+///     count at VBO-upload time, reducing GPU vertex throughput for large datasets.</item>
 ///   <item>X/Y/Z axis lines rendered via <see cref="AxisRenderer"/> (flat-colour shader).</item>
 /// </list>
 /// <para>
@@ -56,6 +60,19 @@ public sealed class ScatterChart3D : IChart3D
 
     /// <summary>Gets the series currently registered with this chart.</summary>
     public IReadOnlyList<DataSeries3D> Series => _series;
+
+    /// <summary>
+    /// Gets or sets the maximum number of points uploaded to the GPU per series.
+    /// When a series exceeds this value, its data is stride-sampled to
+    /// <see cref="MaxRenderPoints"/> entries before VBO upload (LOD).
+    /// Set to <c>0</c> to disable the cap (default — all points are uploaded).
+    /// </summary>
+    /// <remarks>
+    /// The cap is applied at VBO-upload time (i.e., on <see cref="DataSeries3D.DataChanged"/>
+    /// or at <see cref="Initialize"/>). Changing this property takes effect on the next
+    /// data-changed event or chart re-initialization.
+    /// </remarks>
+    public int MaxRenderPoints { get; set; }
 
     /// <summary>
     /// Adds a series. If the chart is already initialized, uploads the series to the GPU immediately.
@@ -136,6 +153,13 @@ public sealed class ScatterChart3D : IChart3D
                 continue;
             }
 
+            // Frustum cull: skip the draw call when the series AABB is entirely
+            // outside the view frustum. The test is conservative (never culls visible data).
+            if (!FrustumCuller.IsVisible(gpuData.Bounds, mvp))
+            {
+                continue;
+            }
+
             Color c = series.Color;
             _shaderProgram.SetUniform(
                 "uColor",
@@ -200,11 +224,31 @@ public sealed class ScatterChart3D : IChart3D
     {
         FreeGpuSeries(series.Name);
 
-        DataPoint3D[] points = [.. series.Points];
-        if (points.Length == 0)
+        DataPoint3D[] allPoints = [.. series.Points];
+        if (allPoints.Length == 0)
         {
             return;
         }
+
+        // LOD: when MaxRenderPoints is set and the series exceeds it, stride-sample
+        // the data down to MaxRenderPoints entries before GPU upload.
+        DataPoint3D[] points;
+        if (MaxRenderPoints > 0 && allPoints.Length > MaxRenderPoints)
+        {
+            int stride = allPoints.Length / MaxRenderPoints;
+            points = new DataPoint3D[MaxRenderPoints];
+
+            for (int i = 0; i < MaxRenderPoints; i++)
+            {
+                points[i] = allPoints[i * stride];
+            }
+        }
+        else
+        {
+            points = allPoints;
+        }
+
+        BoundingBox3D bounds = ComputeBounds(points);
 
         // DataPoint3D is an unmanaged struct: float X, Y, Z — 12 bytes per vertex.
         VertexBuffer vbo = VertexBuffer.Create(gl, points);
@@ -216,7 +260,7 @@ public sealed class ScatterChart3D : IChart3D
         vao.Unbind();
         vbo.Unbind();
 
-        _gpuBuffers[series.Name] = new GpuSeriesData(vao, vbo, points.Length);
+        _gpuBuffers[series.Name] = new GpuSeriesData(vao, vbo, points.Length, bounds);
     }
 
     private void FreeGpuSeries(string seriesName)
@@ -239,7 +283,47 @@ public sealed class ScatterChart3D : IChart3D
         UploadSeriesToGpu(_gl, series);
     }
 
+    private static BoundingBox3D ComputeBounds(ReadOnlySpan<DataPoint3D> points)
+    {
+        float minX = points[0].X, minY = points[0].Y, minZ = points[0].Z;
+        float maxX = minX, maxY = minY, maxZ = minZ;
+
+        for (int i = 1; i < points.Length; i++)
+        {
+            DataPoint3D p = points[i];
+
+            if (p.X < minX)
+            {
+                minX = p.X;
+            }
+            else if (p.X > maxX)
+            {
+                maxX = p.X;
+            }
+
+            if (p.Y < minY)
+            {
+                minY = p.Y;
+            }
+            else if (p.Y > maxY)
+            {
+                maxY = p.Y;
+            }
+
+            if (p.Z < minZ)
+            {
+                minZ = p.Z;
+            }
+            else if (p.Z > maxZ)
+            {
+                maxZ = p.Z;
+            }
+        }
+
+        return new BoundingBox3D(minX, minY, minZ, maxX, maxY, maxZ);
+    }
+
     // ── Nested types ──────────────────────────────────────────────────────────
 
-    private sealed record GpuSeriesData(VertexArrayObject Vao, VertexBuffer Vbo, int Count);
+    private sealed record GpuSeriesData(VertexArrayObject Vao, VertexBuffer Vbo, int Count, BoundingBox3D Bounds);
 }

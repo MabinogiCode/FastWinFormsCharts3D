@@ -43,4 +43,31 @@ public class ScatterRenderBenchmark
         DataSeries3D series = new("bench", []);
         series.SetPoints(_points);
     }
+
+    /// <summary>
+    /// Benchmarks the LOD stride-sampling pass applied by
+    /// <see cref="FastWinFormsCharts3D.Charts.Scatter.ScatterChart3D.MaxRenderPoints"/>
+    /// before VBO upload when a series exceeds the configured point cap.
+    /// At <c>PointCount = 1 000</c> the data fits within the target and the array is returned as-is.
+    /// </summary>
+    [Benchmark(Description = "LOD stride-sample (→ 10 k points)")]
+    public DataPoint3D[] LodStrideSample()
+    {
+        const int target = 10_000;
+
+        if (_points.Length <= target)
+        {
+            return _points;
+        }
+
+        int stride = _points.Length / target;
+        DataPoint3D[] result = new DataPoint3D[target];
+
+        for (int i = 0; i < target; i++)
+        {
+            result[i] = _points[i * stride];
+        }
+
+        return result;
+    }
 }
