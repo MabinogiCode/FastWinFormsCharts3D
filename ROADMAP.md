@@ -52,11 +52,17 @@
 - [x] `surface.vert` / `surface.frag` — embedded GLSL, height-to-Viridis pipeline
 - [x] Demo: ripple heightmap (sin(dist × 15) × 0.25, 100 × 100 grid) — Surface tab in demo app
 
-## v0.5 — Bar Chart 3D
+## v0.5 — Bar Chart 3D *(done)*
 
-- [ ] `BarChart3D : IChart3D`
-- [ ] Instanced rendering (`glDrawArraysInstanced`) for performance
-- [ ] Per-instance color + height buffer
+- [x] `BarChart3D : IChart3D`
+- [x] Instanced rendering (`glDrawArraysInstanced`) — one draw call for any grid size
+- [x] Per-instance height buffer — `(barX, barZ, barHeight)` × 12 bytes, divisor = 1
+- [x] `BarSeries3D` — rows × cols height grid, `BarWidthFraction`/`BarDepthFraction`, `DataChanged` event
+- [x] Static unit-cube VBO (36 vertices, rebuilt once); instance VBO rebuilt on `DataChanged`
+- [x] `bar.vert` / `bar.frag` — Viridis height colouring, `uBarWidth`/`uBarDepth` uniforms
+- [x] `AxisRenderer` — shared flat-colour axis helper (`flat.vert`/`flat.frag`); used by all three charts
+- [x] Refactored `ScatterChart3D` + `SurfaceChart3D` to use `AxisRenderer` (fixes teal-axis issue)
+- [x] Demo: wave-pattern grid (sin × cos, 12 × 12 bars) — Bar 3D tab in demo app
 
 ## v0.6 — Line Chart 3D
 

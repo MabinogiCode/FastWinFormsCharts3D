@@ -19,7 +19,7 @@ namespace FastWinFormsCharts3D.Charts.Scatter;
 ///   <item>Shaders compiled from embedded resources on <see cref="Initialize"/>.</item>
 ///   <item>Each series maps to one VAO + VBO pair (tightly packed XYZ floats).</item>
 ///   <item>MVP uploaded per frame; model matrix is Identity (data in world space).</item>
-///   <item>X/Y/Z axis lines rendered last with fixed colors.</item>
+///   <item>X/Y/Z axis lines rendered via <see cref="AxisRenderer"/> (flat-colour shader).</item>
 /// </list>
 /// <para>
 /// <see cref="DataSeries3D.DataChanged"/> triggers an incremental GPU re-upload on the UI thread.
@@ -31,27 +31,11 @@ public sealed class ScatterChart3D : IChart3D
     private const string VertResourceName = "FastWinFormsCharts3D.Rendering.Shaders.scatter.vert";
     private const string FragResourceName = "FastWinFormsCharts3D.Rendering.Shaders.scatter.frag";
 
-    // ── Axis geometry: 3 lines × 2 vertices × 3 floats ───────────────────────
-    private static readonly float[] AxisVertices =
-    [
-        -1f, 0f, 0f,   1f, 0f, 0f,   // X axis
-         0f,-1f, 0f,   0f, 1f, 0f,   // Y axis
-         0f, 0f,-1f,   0f, 0f, 1f,   // Z axis
-    ];
-
-    private static readonly (Vector4 Color, int FirstVertex, int VertexCount)[] AxisSegments =
-    [
-        (new Vector4(0.9f, 0.25f, 0.25f, 1f), 0, 2),   // X — red
-        (new Vector4(0.25f, 0.9f, 0.25f, 1f), 2, 2),   // Y — green
-        (new Vector4(0.25f, 0.5f,  1.0f, 1f), 4, 2),   // Z — blue
-    ];
-
     // ── GPU state ─────────────────────────────────────────────────────────────
     private GL? _gl;
     private ShaderProgram? _shaderProgram;
     private readonly Dictionary<string, GpuSeriesData> _gpuBuffers = [];
-    private VertexArrayObject? _axisVao;
-    private VertexBuffer? _axisVbo;
+    private AxisRenderer? _axisRenderer;
 
     // ── Domain state ──────────────────────────────────────────────────────────
     private readonly List<DataSeries3D> _series = [];
@@ -116,9 +100,10 @@ public sealed class ScatterChart3D : IChart3D
             UploadSeriesToGpu(gl, series);
         }
 
-        InitializeAxes(gl);
-        UpdateProjection();
+        _axisRenderer = new AxisRenderer();
+        _axisRenderer.Initialize(gl);
 
+        UpdateProjection();
         IsInitialized = true;
     }
 
@@ -163,7 +148,7 @@ public sealed class ScatterChart3D : IChart3D
         }
 
         // ── X / Y / Z axis lines ───────────────────────────────────────────
-        RenderAxes(gl);
+        _axisRenderer?.Render(gl, mvp);
     }
 
     /// <inheritdoc />
@@ -193,8 +178,7 @@ public sealed class ScatterChart3D : IChart3D
             }
 
             _gpuBuffers.Clear();
-            _axisVao?.Dispose();
-            _axisVbo?.Dispose();
+            _axisRenderer?.Dispose();
             _disposed = true;
         }
 
@@ -253,34 +237,6 @@ public sealed class ScatterChart3D : IChart3D
         }
 
         UploadSeriesToGpu(_gl, series);
-    }
-
-    private void InitializeAxes(GL gl)
-    {
-        _axisVbo = VertexBuffer.Create(gl, AxisVertices);
-        _axisVao = new VertexArrayObject(gl);
-        _axisVbo.Bind();
-        _axisVao.AddVertexAttributePointer(0, 3, VertexAttribPointerType.Float, false, (uint)(3 * sizeof(float)), 0);
-        _axisVao.Unbind();
-        _axisVbo.Unbind();
-    }
-
-    private void RenderAxes(GL gl)
-    {
-        if (_shaderProgram is null || _axisVao is null)
-        {
-            return;
-        }
-
-        _shaderProgram.SetUniform("uPointSize", 1f);
-
-        foreach ((Vector4 color, int firstVertex, int count) in AxisSegments)
-        {
-            _shaderProgram.SetUniform("uColor", color);
-            _axisVao.Bind();
-            gl.DrawArrays(PrimitiveType.Lines, firstVertex, (uint)count);
-            _axisVao.Unbind();
-        }
     }
 
     // ── Nested types ──────────────────────────────────────────────────────────

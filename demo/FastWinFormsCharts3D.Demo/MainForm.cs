@@ -1,5 +1,6 @@
 // Copyright (c) 2026 MabinogiCode. All rights reserved.
 
+using FastWinFormsCharts3D.Charts.Bar;
 using FastWinFormsCharts3D.Charts.Scatter;
 using FastWinFormsCharts3D.Charts.Surface;
 using FastWinFormsCharts3D.Controls;
@@ -10,10 +11,11 @@ using System.Windows.Forms;
 namespace FastWinFormsCharts3D.Demo;
 
 /// <summary>
-/// Main demo window. Shows two tabs:
+/// Main demo window. Shows three tabs:
 /// <list type="bullet">
 ///   <item><b>Scatter 3D</b> — animated sin/cos spiral (100 000 points, ~60 fps).</item>
 ///   <item><b>Surface 3D</b> — ripple heightmap (100 × 100 grid, Viridis palette).</item>
+///   <item><b>Bar 3D</b> — wave-pattern bar grid (12 × 12, instanced rendering).</item>
 /// </list>
 /// </summary>
 public partial class MainForm : Form
@@ -28,6 +30,7 @@ public partial class MainForm : Form
         InitializeComponent();
         SetupScatter();
         SetupSurface();
+        SetupBar();
     }
 
     // ── Scatter tab ───────────────────────────────────────────────────────────
@@ -125,5 +128,36 @@ public partial class MainForm : Form
         }
 
         return h;
+    }
+
+    // ── Bar tab ───────────────────────────────────────────────────────────────
+
+    private void SetupBar()
+    {
+        const int rows = 12;
+        const int cols = 12;
+        float[,] values = BuildWaveGrid(rows, cols);
+
+        BarChart3D bar = new(new BarSeries3D("Wave", values))
+        {
+            Title = "Bar 3D — Wave Grid (12 × 12, instanced)",
+        };
+
+        _barControl.Chart = bar;
+    }
+
+    private static float[,] BuildWaveGrid(int rows, int cols)
+    {
+        float[,] v = new float[rows, cols];
+
+        for (int r = 0; r < rows; r++)
+        {
+            for (int c = 0; c < cols; c++)
+            {
+                v[r, c] = (MathF.Sin(r * 0.8f) * MathF.Cos(c * 0.8f) + 1f) * 0.5f;
+            }
+        }
+
+        return v;
     }
 }

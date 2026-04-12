@@ -13,7 +13,9 @@ partial class MainForm
     private TabControl _tabControl = null!;
     private TabPage _tabScatter = null!;
     private TabPage _tabSurface = null!;
+    private TabPage _tabBar = null!;
     private Chart3DControl _surfaceControl = null!;
+    private Chart3DControl _barControl = null!;
 
     /// <inheritdoc />
     protected override void Dispose(bool disposing)
@@ -31,10 +33,12 @@ partial class MainForm
         components = new System.ComponentModel.Container();
         _chartControl = new Chart3DControl();
         _surfaceControl = new Chart3DControl();
+        _barControl = new Chart3DControl();
         _animTimer = new System.Windows.Forms.Timer(components);
         _tabControl = new TabControl();
         _tabScatter = new TabPage();
         _tabSurface = new TabPage();
+        _tabBar = new TabPage();
 
         SuspendLayout();
 
@@ -50,6 +54,10 @@ partial class MainForm
         _surfaceControl.Dock = DockStyle.Fill;
         _surfaceControl.BackColor = Color.FromArgb(20, 20, 30);
 
+        // _barControl
+        _barControl.Dock = DockStyle.Fill;
+        _barControl.BackColor = Color.FromArgb(20, 20, 30);
+
         // _tabScatter
         _tabScatter.Text = "Scatter 3D";
         _tabScatter.BackColor = Color.FromArgb(20, 20, 30);
@@ -60,10 +68,16 @@ partial class MainForm
         _tabSurface.BackColor = Color.FromArgb(20, 20, 30);
         _tabSurface.Controls.Add(_surfaceControl);
 
+        // _tabBar
+        _tabBar.Text = "Bar 3D";
+        _tabBar.BackColor = Color.FromArgb(20, 20, 30);
+        _tabBar.Controls.Add(_barControl);
+
         // _tabControl
         _tabControl.Dock = DockStyle.Fill;
         _tabControl.TabPages.Add(_tabScatter);
         _tabControl.TabPages.Add(_tabSurface);
+        _tabControl.TabPages.Add(_tabBar);
 
         // MainForm
         AutoScaleDimensions = new SizeF(7F, 15F);

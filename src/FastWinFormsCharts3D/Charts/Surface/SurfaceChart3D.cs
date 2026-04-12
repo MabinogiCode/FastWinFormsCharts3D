@@ -18,9 +18,9 @@ namespace FastWinFormsCharts3D.Charts.Surface;
 /// <list type="number">
 ///   <item>Shaders compiled from embedded resources on <see cref="Initialize"/>.</item>
 ///   <item>Heightmap baked into a VBO (tightly-packed XYZ floats) + EBO (uint triangle indices).</item>
-///   <item>MVP uploaded per frame; model matrix is Identity (data in world space).</item>
+///   <item>MVP uploaded per frame; model matrix is Identity.</item>
 ///   <item>Fragment shader maps normalised Y height to Viridis via a degree-6 polynomial.</item>
-///   <item>X/Y/Z axis lines rendered last with Viridis mid-tone (dedicated colour shader deferred to v0.8).</item>
+///   <item>X/Y/Z axis lines rendered via <see cref="AxisRenderer"/> (flat-colour shader).</item>
 /// </list>
 /// <para>
 /// <see cref="SurfaceData.DataChanged"/> triggers a full GPU mesh rebuild on the UI thread.
@@ -32,14 +32,6 @@ public sealed class SurfaceChart3D : IChart3D
     private const string VertResourceName = "FastWinFormsCharts3D.Rendering.Shaders.surface.vert";
     private const string FragResourceName = "FastWinFormsCharts3D.Rendering.Shaders.surface.frag";
 
-    // ── Axis geometry: 3 lines × 2 vertices × 3 floats ───────────────────────
-    private static readonly float[] AxisVertices =
-    [
-        -1f, 0f, 0f,   1f, 0f, 0f,   // X axis
-         0f,-1f, 0f,   0f, 1f, 0f,   // Y axis
-         0f, 0f,-1f,   0f, 0f, 1f,   // Z axis
-    ];
-
     // ── GPU state ─────────────────────────────────────────────────────────────
     private GL? _gl;
     private ShaderProgram? _shaderProgram;
@@ -49,8 +41,7 @@ public sealed class SurfaceChart3D : IChart3D
     private int _indexCount;
     private float _yMin;
     private float _yMax;
-    private VertexArrayObject? _axisVao;
-    private VertexBuffer? _axisVbo;
+    private AxisRenderer? _axisRenderer;
 
     // ── Domain state ──────────────────────────────────────────────────────────
     private Matrix4x4 _projectionMatrix = Matrix4x4.Identity;
@@ -88,9 +79,11 @@ public sealed class SurfaceChart3D : IChart3D
 
         Data.DataChanged += OnDataChanged;
         UploadMesh(gl);
-        InitializeAxes(gl);
-        UpdateProjection();
 
+        _axisRenderer = new AxisRenderer();
+        _axisRenderer.Initialize(gl);
+
+        UpdateProjection();
         IsInitialized = true;
     }
 
@@ -113,7 +106,7 @@ public sealed class SurfaceChart3D : IChart3D
         gl.DrawElements(PrimitiveType.Triangles, (uint)_indexCount, DrawElementsType.UnsignedInt, 0);
         _meshVao.Unbind();
 
-        RenderAxes(gl);
+        _axisRenderer?.Render(gl, mvp);
     }
 
     /// <inheritdoc />
@@ -132,8 +125,7 @@ public sealed class SurfaceChart3D : IChart3D
             Data.DataChanged -= OnDataChanged;
             _shaderProgram?.Dispose();
             FreeMeshBuffers();
-            _axisVao?.Dispose();
-            _axisVbo?.Dispose();
+            _axisRenderer?.Dispose();
             _disposed = true;
         }
 
@@ -165,7 +157,6 @@ public sealed class SurfaceChart3D : IChart3D
         (_yMin, _yMax) = FindYRange(Data);
         _indexCount = indices.Length;
 
-        // Upload geometry to GPU.
         _meshVbo = VertexBuffer.Create(gl, vertices);
         _meshEbo = VertexBuffer.Create(gl, indices, BufferTargetARB.ElementArrayBuffer);
 
@@ -199,33 +190,6 @@ public sealed class SurfaceChart3D : IChart3D
         {
             UploadMesh(_gl);
         }
-    }
-
-    private void InitializeAxes(GL gl)
-    {
-        _axisVbo = VertexBuffer.Create(gl, AxisVertices);
-        _axisVao = new VertexArrayObject(gl);
-        _axisVbo.Bind();
-        _axisVao.AddVertexAttributePointer(0, 3, VertexAttribPointerType.Float, false, (uint)(3 * sizeof(float)), 0);
-        _axisVao.Unbind();
-        _axisVbo.Unbind();
-    }
-
-    private void RenderAxes(GL gl)
-    {
-        if (_shaderProgram is null || _axisVao is null)
-        {
-            return;
-        }
-
-        // The surface shader has no per-object colour uniform; axes render with Viridis(0.5) ≈ teal.
-        // A dedicated flat-colour axis shader will be introduced in v0.8.
-        _shaderProgram.SetUniform("uYMin", 0f);
-        _shaderProgram.SetUniform("uYMax", 0f);   // forces vNormalizedY = 0.5 → Viridis mid-tone
-
-        _axisVao.Bind();
-        gl.DrawArrays(PrimitiveType.Lines, 0, (uint)(AxisVertices.Length / 3));
-        _axisVao.Unbind();
     }
 
     // ── Static mesh builders ──────────────────────────────────────────────────
