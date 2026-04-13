@@ -1,0 +1,34 @@
+# .NET build outputs
+bin/
+obj/
+*.user
+*.suo
+.vs/
+.vscode/
+*.DotSettings.user
+
+# NuGet
+*.nupkg
+*.snupkg
+packages/
+project.lock.json
+
+# Test results
+TestResults/
+coverage/
+*.coveragexml
+
+# Rider / IntelliJ
+.idea/
+*.sln.iml
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# BenchmarkDotNet
+BenchmarkDotNet.Artifacts/
+
+# DocFX
+_site/

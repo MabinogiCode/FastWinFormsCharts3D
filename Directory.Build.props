@@ -1,0 +1,66 @@
+<Project>
+
+  <!-- ═══════════════════════════════════════════════
+       LANGUAGE & COMPILER SETTINGS
+  ═══════════════════════════════════════════════ -->
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningLevel>9999</WarningLevel>
+  </PropertyGroup>
+
+  <!-- ═══════════════════════════════════════════════
+       DETERMINISTIC / REPRODUCIBLE BUILDS
+  ═══════════════════════════════════════════════ -->
+  <PropertyGroup>
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+
+  <!-- ═══════════════════════════════════════════════
+       ANALYSIS — Microsoft Guidelines
+  ═══════════════════════════════════════════════ -->
+  <PropertyGroup>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <AnalysisMode>AllEnabledByDefault</AnalysisMode>
+  </PropertyGroup>
+
+  <!-- ═══════════════════════════════════════════════
+       SOURCE LINK + EMBEDDED PDB
+  ═══════════════════════════════════════════════ -->
+  <PropertyGroup>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <DebugType>embedded</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+
+  <!-- ═══════════════════════════════════════════════
+       XML DOC — uniquement pour src/
+  ═══════════════════════════════════════════════ -->
+  <PropertyGroup Condition="$(MSBuildProjectFullPath.Contains('/src/'))">
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <!-- ═══════════════════════════════════════════════
+       ANALYZERS PARTAGÉS (tous les projets)
+  ═══════════════════════════════════════════════ -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" PrivateAssets="all" />
+    <PackageReference Include="StyleCop.Analyzers"                  PrivateAssets="all" />
+    <PackageReference Include="Roslynator.Analyzers"                PrivateAssets="all" />
+    <PackageReference Include="SonarAnalyzer.CSharp"                PrivateAssets="all" />
+  </ItemGroup>
+
+  <!-- ═══════════════════════════════════════════════
+       STYLECOP SETTINGS (repo-wide)
+  ═══════════════════════════════════════════════ -->
+  <ItemGroup>
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)stylecop.json" />
+  </ItemGroup>
+
+</Project>

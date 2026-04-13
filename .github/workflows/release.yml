@@ -1,0 +1,65 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  publish:
+    name: Pack & Publish
+    runs-on: windows-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Extract version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
+        shell: bash
+
+      - name: Restore
+        run: dotnet restore FastWinFormsCharts3D.sln
+
+      - name: Build
+        run: >
+          dotnet build src/FastWinFormsCharts3D/FastWinFormsCharts3D.csproj
+          -c Release --no-restore
+          /p:Version=${{ steps.version.outputs.VERSION }}
+
+      - name: Pack
+        run: >
+          dotnet pack src/FastWinFormsCharts3D/FastWinFormsCharts3D.csproj
+          -c Release --no-build
+          /p:Version=${{ steps.version.outputs.VERSION }}
+          -o ./artifacts
+
+      - name: Push .nupkg to NuGet.org
+        run: >
+          dotnet nuget push ./artifacts/*.nupkg
+          --api-key ${{ secrets.NUGET_API_KEY }}
+          --source https://api.nuget.org/v3/index.json
+          --skip-duplicate
+
+      - name: Push .snupkg to NuGet.org
+        run: >
+          dotnet nuget push ./artifacts/*.snupkg
+          --api-key ${{ secrets.NUGET_API_KEY }}
+          --source https://api.nuget.org/v3/index.json
+          --skip-duplicate
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ./artifacts/*
+          generate_release_notes: true

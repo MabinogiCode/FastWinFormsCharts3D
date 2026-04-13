@@ -1,0 +1,58 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- ── Target ── -->
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+    <!-- ── NuGet Identity ── -->
+    <PackageId>FastWinFormsCharts3D</PackageId>
+    <Version>0.1.0</Version>
+    <Authors>MabinogiCode</Authors>
+    <Company>MabinogiCode</Company>
+    <Product>FastWinFormsCharts3D</Product>
+    <Description>High-performance 3D charting controls for WinForms powered by Silk.NET and OpenGL. Scatter 3D, Surface, Bar 3D and more — as powerful as Helix Toolkit and Plotly for desktop .NET applications.</Description>
+    <Summary>Fast 3D WinForms charting powered by Silk.NET OpenGL</Summary>
+    <PackageTags>winforms;3d;chart;opengl;silk.net;scatter;visualization;dotnet</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageProjectUrl>https://github.com/MabinogiCode/FastWinFormsCharts3D</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/MabinogiCode/FastWinFormsCharts3D</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <NeutralLanguage>en</NeutralLanguage>
+
+    <!-- ── NuGet Pack Behaviour ── -->
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+
+    <!-- ── Assembly ── -->
+    <AssemblyName>FastWinFormsCharts3D</AssemblyName>
+    <RootNamespace>FastWinFormsCharts3D</RootNamespace>
+  </PropertyGroup>
+
+  <!-- ── SourceLink ── -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" PrivateAssets="all" />
+  </ItemGroup>
+
+  <!-- ── Silk.NET ── -->
+  <ItemGroup>
+    <PackageReference Include="Silk.NET.OpenGL" />
+    <PackageReference Include="Silk.NET.Maths" />
+  </ItemGroup>
+
+  <!-- ── Embed GLSL shaders in assembly ── -->
+  <ItemGroup>
+    <EmbeddedResource Include="Rendering\Shaders\**\*.vert" />
+    <EmbeddedResource Include="Rendering\Shaders\**\*.frag" />
+  </ItemGroup>
+
+  <!-- ── Pack README at NuGet package root ── -->
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+</Project>

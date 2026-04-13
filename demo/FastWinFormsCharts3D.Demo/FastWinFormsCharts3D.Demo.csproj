@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <OutputType>WinExe</OutputType>
+    <UseWindowsForms>true</UseWindowsForms>
+    <IsPackable>false</IsPackable>
+    <IsPublishable>false</IsPublishable>
+    <RootNamespace>FastWinFormsCharts3D.Demo</RootNamespace>
+    <ApplicationIcon />
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\FastWinFormsCharts3D\FastWinFormsCharts3D.csproj" />
+  </ItemGroup>
+
+</Project>
